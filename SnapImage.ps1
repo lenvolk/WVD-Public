@@ -57,9 +57,10 @@
 .EXAMPLE
     Create an image and add it to the source computers resource group:
     .\SnapImage.ps1 -refVmName "<ComputerName>" -refVmRg '<RGName>'   
+    .\SnapImage.ps1 -refVmName 'Win10MultiBase' -refVmRg 'AIBManagedIDRG'
 
     Create an image and add it to an Azure Compute Gallery:
-    .\SnapImage.ps1 -refVmName "<ComputerName>" -refVmRg '<RGName>' -galDeploy -galName '<Azure Compute Gallery>' -galDefName '<Image Definition>'
+    .\SnapImage.ps1 -refVmName '<ComputerName>' -refVmRg '<RGName>' -galDeploy -galName '<Azure Compute Gallery>' -galDefName '<Image Definition>'
 #>
 
 
@@ -67,13 +68,20 @@
 param (
     [Parameter(Mandatory = $true)][string]$refVmName,
     [Parameter(Mandatory = $true)][string]$refVmRg,
-    [Parameter(Mandatory = $false)][string]$cseURI = 'https://raw.githubusercontent.com/tsrob50/WVD-Public/master/SysprepCSE.ps1',
+    [Parameter(Mandatory = $false)][string]$cseURI = 'https://raw.githubusercontent.com/lenvolk/WVD-Public/master/SysprepCSE.ps1',
     [Parameter(Mandatory = $false)][switch]$galDeploy = $false,
     [Parameter(Mandatory = $false)][string]$galName,
     [parameter(Mandatory = $false)][string]$galDefName,
     [parameter(Mandatory = $false)][string]$delSnap = $true
 )
 
+### LenVolk Testing
+# $refVmName = 'Win10MultiBase'
+# $refVmRg = 'AIBManagedIDRG'
+# $cseURI = 'https://raw.githubusercontent.com/lenvolk/WVD-Public/master/SysprepCSE.ps1'
+# $galDeploy = $true
+# $galName = 'LabSIG' 
+# $galDefName = 'wvd-win10'
 
 #Validate the Azure Compute Gallery settings were added correctly if used
 Try {
@@ -157,13 +165,13 @@ Catch {
 #Create a new VNet 
 Try {
     Write-Host "Creating the VNet and Subnet"
-    $singleSubnet = New-AzVirtualNetworkSubnetConfig -ErrorAction Stop -Name ('tempSubnet' + $date) -AddressPrefix '10.0.0.0/24' 
+    $singleSubnet = New-AzVirtualNetworkSubnetConfig -ErrorAction Stop -Name ('tempSubnet' + $date) -AddressPrefix '2.0.0.0/24' 
     $vnetConfig = @{
         ErrorAction       = 'Stop'
         Name              = ('tempSubnet' + $date) 
         ResourceGroupName = $capVmRg.ResourceGroupName
         Location          = $location
-        AddressPrefix     = "10.0.0.0/16"
+        AddressPrefix     = "2.0.0.0/16"
         Subnet            = $singleSubnet
     }
     $vnet = New-AzVirtualNetwork @vnetConfig 
@@ -343,7 +351,7 @@ Try {
             ResourceGroupName          = $gallery.ResourceGroupName
             GalleryName                = $gallery.Name
             GalleryImageDefinitionName = $galDefName
-            Name                       = $imageVersion
+            Name                       = '3.0.0' #$imageVersion
             Location                   = $gallery.Location
             SourceImageId              = $image.Id
         }
